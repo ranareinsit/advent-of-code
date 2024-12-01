@@ -15,6 +15,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 add_subdirectory(src/lib/foo)
 add_subdirectory(src/lib/example)
+add_subdirectory(src/lib/day_01)
 
 
 if(BUILD_TESTING)
