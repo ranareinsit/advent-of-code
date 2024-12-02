@@ -1,4 +1,3 @@
-#include <day_01/main.hpp>
 #include <day_01/common.hpp>
 #include <iostream>
 #include <fstream>
