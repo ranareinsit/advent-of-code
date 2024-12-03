@@ -18,14 +18,10 @@ target_link_libraries(day_${name}_part_02_exec PRIVATE day_${name})
 add_custom_command(TARGET day_${name} POST_BUILD
     COMMAND \$\{CMAKE_COMMAND\} -E copy_if_different
         \$\{CMAKE_SOURCE_DIR\}/src/lib/day_${name}/src/input.txt
-        \$\{CMAKE_BINARY_DIR\}/src/lib/day_${name}/src/input.txt
-)
-
-#
-add_custom_command(TARGET day_${name} POST_BUILD
+        \$\{CMAKE_CURRENT_BINARY_DIR\}/input.txt
     COMMAND \$\{CMAKE_COMMAND\} -E copy_if_different
         \$\{CMAKE_SOURCE_DIR\}/src/lib/day_${name}/src/test-input.txt
-        \$\{CMAKE_BINARY_DIR\}/src/lib/day_${name}/src/test-input.txt
+        \$\{CMAKE_CURRENT_BINARY_DIR\}/test-input.txt
 )
 
 #
@@ -59,7 +55,7 @@ const mkCommonFile = name => `namespace day_${name} {}`.trim();
 
 const mkPart = name => {
     return `
-    #include <day_${name}/common.hpp>
+    #include "common.cpp"
     int main() {return 0;}
     `.trim();
 };
@@ -129,9 +125,6 @@ function layout(name) {
     // tests
     fs.writeFileSync(`./src/tests/day_${name}/CMakeLists.txt`, testCmakeList(name));
     fs.writeFileSync(`./src/tests/day_${name}/day_${name}.cpp`, mkTestFile(name));
-
-    // addition into top cmake tests
-
 }
 
 function formatArgument(arg) {
