@@ -22,9 +22,12 @@ add_subdirectory(src/lib/day_03)
 
 add_subdirectory(src/lib/day_04)
 
+add_subdirectory(src/lib/day_05)
+
 if(BUILD_TESTING)
   add_subdirectory(src/tests/day_01)
   add_subdirectory(src/tests/day_02)
   add_subdirectory(src/tests/day_03)
   add_subdirectory(src/tests/day_04)
+  add_subdirectory(src/tests/day_05)
 endif()
