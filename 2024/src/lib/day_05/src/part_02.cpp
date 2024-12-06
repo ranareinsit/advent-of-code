@@ -47,21 +47,15 @@ vector<long> fix_incorrectly_ordered_updates(set <long>& unic, std::vector<std::
 		int shift = 0;
 
 		for (size_t i = 1; i < copy.size(); i++) { // welp, it works.
-			auto prev = copy[i - 1];
-			auto curr = copy[i];
 			bool found = false;
-
 			for (auto& rule : ruleset) {
-				if (rule.second == prev && rule.first == curr) {
+				if (rule.second == copy[i - 1] && rule.first == copy[i]) {
 					found = true;
-					copy[i] = copy[i - 1];
-					copy[i - 1] = curr;
+					swap(copy[i - 1], copy[i]);
 					break;
 				}
 			}
-			if (found) {
-				break;
-			}
+			if (found) {break;}
 		}
 	}
 
