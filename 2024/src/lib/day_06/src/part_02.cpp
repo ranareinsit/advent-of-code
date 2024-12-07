@@ -99,6 +99,31 @@ struct Matrix {
 		if (result.value == terms.at("outbound_path")) { return empty_cell; }
 		return result;
 	}
+
+	Cell next(Cell c, int d) {
+		int cx = c.x;
+		int cy = c.y;
+		int direction = d;
+		if (d == 0) { cy--; }
+		if (d == 90) { cx++; }
+		if (d == 180) { cy++; }
+		if (d == 270) { cx--; }
+		Cell result = get(cx, cy);
+		if (result.value == terms.at("outbound_path")) { return empty_cell; }
+		return result;
+	}
+	Cell previous(Cell c, int d) {
+		int cx = c.x;
+		int cy = c.y;
+		int direction = d;
+		if (d == 0) { cy++; }
+		if (d == 90) { cx--; }
+		if (d == 180) { cy--; }
+		if (d == 270) { cx++; }
+		Cell result = get(cx, cy);
+		if (result.value == terms.at("outbound_path")) { return empty_cell; }
+		return result;
+	}
 };
 
 struct Ray {
@@ -138,16 +163,12 @@ struct Ray {
 	}
 
 	bool cast2(Matrix& space, int x, int y, int d) {
+		direction = d;
 		int cx = x;
 		int cy = y;
-		start = space.get(x, y);
-		direction = d;
-		Cell current = space.get(cx, cy);
+		Cell current = start = space.get(x, y);
 		while (current.value != terms.at("outbound_path")) {
-			if (current.value == terms.at("obstruction")) {
-				if (cells.size() == 0) return false;
-				return true;
-			}
+			if (current.value == terms.at("obstruction")) { return cells.size() == 0 ? false : true; }
 			add(current);
 			if (d == 0) { cy--; }
 			if (d == 90) { cx++; }
@@ -186,35 +207,44 @@ vector<vector<Cell>> traverse(Matrix& matrix, Cell cell) {
 	return result;
 }
 
-bool bounce_90(Matrix& matrix, Cell point, int d) {
-	Cell refraction_point = matrix.next(point.x, point.y, d);
-	if (refraction_point.value == '?' || refraction_point.value == '#') return false;
-	int direction = d + 90 > 270 ? 0 : d + 90;
-	Cell current_point = matrix.next(point.x, point.y, direction);
-	if (current_point.value == '?' ) return false;
+bool bounce_90(Matrix& matrix, Cell point, int d, Cell start) {
+	Cell refraction_point = point;
+	int direction = d;
+	Cell current_point = start;
+	if (refraction_point.value == '?' || current_point.value == '?') return false;
+	if (start.x == point.x && start.y == point.y) return false;
 	char refraction_point_value_original = refraction_point.value;
-	matrix.set(refraction_point.x, refraction_point.y, '#');
 
-	//TODO: 
-	int safe = matrix.size('#');
-	while (safe-- >= 0) {
+	//
+	matrix.set(refraction_point.x, refraction_point.y, '#');
+	map<string, int> obstacles;
+	for (auto& r : matrix.cells) {
+		for (auto& c : r) {
+			if (c.value == '#') {
+				string obstacle_key = to_string(c.x) + ":" + to_string(c.y);
+				obstacles[obstacle_key] = 0;
+			}
+		}
+	}
+	//
+	int safe = obstacles.size() * 2;
+	while (safe-- > 0) {
 		Ray current_ray;
 		bool reason = current_ray.cast2(matrix, current_point.x, current_point.y, direction);
 		if (!reason) { break; }
-		if (current_ray.check_intersection_by(point)) {
-			safe = 0;
-			break;
+		Cell last_ray_point = current_ray.cells.back();
+		Cell next = matrix.next(last_ray_point, direction);
+		string obstacle_key = to_string(next.x) + ":" + to_string(next.y);
+		auto& obstacle = obstacles.at(obstacle_key);
+		if (++obstacle > 2) {
+			matrix.set(refraction_point.x, refraction_point.y, refraction_point_value_original);
+			return true;
 		}
 
-		Cell last_ray_point = current_ray.cells.back();
-
-
-
 		direction = direction + 90 > 270 ? 0 : direction + 90;
-		current_point = matrix.next(last_ray_point.x, last_ray_point.y, direction);
+		current_point = last_ray_point;
 	}
 	matrix.set(refraction_point.x, refraction_point.y, refraction_point_value_original);
-	if (safe <= 0) { return true; }
 	return false;
 }
 
@@ -249,9 +279,8 @@ int main() {
 	int y = 0;
 	int result = 0;
 	auto [current_point, matrix, direction] = init("input.txt");
-	auto cp_cp = current_point;
-	auto cp_d = direction;
-
+	auto copy_current_point = current_point;
+	auto copy_direction = direction;
 	vector<Ray> rays;
 	bool out_of_map = false;
 
@@ -284,19 +313,28 @@ int main() {
 		}
 	}
 
-	std::set<std::pair<int, int>> unique_pairs;
+	set<pair<int, int>> unique_pairs;
 
 	for (auto& ray : rays) {
 		for (auto& cell : ray.cells) {
-			bool temp = bounce_90(matrix, cell, ray.direction);
+			if (cell.x == copy_current_point.x && cell.y == copy_current_point.y) continue;
+			bool temp = bounce_90(matrix, cell, copy_direction, copy_current_point);
 			if (temp) {
 				unique_pairs.emplace(cell.x, cell.y);
-				cout << "result: " << unique_pairs.size() << endl;
+				matrix.set(cell.x, cell.y, 'O');
 			}
 		}
 	}
 
-	cout << "result: " << " " << unique_pairs.size() << endl; // 1888
+	// for (auto& r : matrix.cells) {
+	// 	for (auto& c : r) {
+	// 		cout << c.value;
+	// 	}
+	// 	cout << endl;
+	// }
+	// cout << endl;
+
+	cout << "result: " << unique_pairs.size()-1 << endl; // 1888
 
 	return 0;
 }
