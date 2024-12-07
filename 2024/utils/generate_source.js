@@ -56,6 +56,7 @@ const mkCommonFile = name => `namespace day_${name} {}`.trim();
 const mkPart = name => {
     return `
     #include "common.cpp"
+    using namespace std;
     int main() {return 0;}
     `.trim();
 };

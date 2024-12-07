@@ -26,4 +26,7 @@ node .\utils\generate_source.js 3
 [Day 04](./2024/src/lib/day_04/README.md)
 
 [Day 05](./2024/src/lib/day_05/README.md)
+
 [Day 06](./2024/src/lib/day_06/README.md)
+
+[Day 07](./2024/src/lib/day_07/README.md)
